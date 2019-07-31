@@ -1,6 +1,6 @@
 {
   "name": "ideamanager",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
@@ -10,9 +10,11 @@
   },
   "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "George Rodier",
+  "license": "MIT"
 }
