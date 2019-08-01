@@ -10,7 +10,7 @@ function AppRoot() {
         <>
           <header className="bg-blue-300 p-2">
             <nav className="container mx-auto flex bg-blue-300 items-center justify-between ">
-              <div>College Football Bowl Pickem</div>
+              <div>Idea Manager</div>
               <Button onClick={signOut}>Sign Out</Button>
             </nav>
           </header>
