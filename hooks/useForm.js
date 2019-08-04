@@ -25,11 +25,16 @@ function useForm(callback) {
     }));
   }
 
+  function clearValues() {
+    setValues({});
+  }
+
   return {
     handleSubmit,
     handleChange,
     values,
-    submitAttempts
+    submitAttempts,
+    clearValues
   };
 }
 
