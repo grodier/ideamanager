@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, forwardRef } from 'react';
 import Button from './Button';
 import { useAuth } from '../context/auth-context';
 import {
@@ -13,7 +13,7 @@ import ListContainer from './ListContainer';
 import TitleContainer from './TitleContainer';
 import Textarea from 'react-textarea-autosize';
 
-function NewIdea({ handleIdeaClosed, handleIdeaSubmitted }) {
+function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
   const [value, setValue] = useState('');
 
   function onChange(e) {
@@ -38,6 +38,8 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted }) {
     handleIdeaClosed();
   }
 
+  console.log();
+
   return (
     <ItemCard>
       <form onSubmit={submitIdea}>
@@ -49,6 +51,7 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted }) {
           onBlur={() => value.length === 0 && handleIdeaClosed()}
           onKeyDown={handleKeyPress}
           className="w-full resize-none p-1 border border-gray-300"
+          inputRef={ref => setInnerTextArea(ref)}
         />
         <div className="flex flex-col flex items-end">
           <button onClick={submitIdea}>Add idea</button>
@@ -61,6 +64,7 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted }) {
 
 function AppRoot() {
   const { user, signOut } = useAuth();
+
   const [ideas, setIdeas] = useState([
     {
       title: 'Idea 1',
@@ -79,12 +83,19 @@ function AppRoot() {
     trail: 400
   });
 
+  const [textArea, setTextArea] = useState(null);
+
+  function onAnimationComplete() {
+    if (textArea && textArea.focus) textArea.focus();
+  }
+
   const addNewSizeRef = useRef();
   const addNewSizeProps = useSpring({
     ref: addNewSizeRef,
     from: { size: 0 },
-    to: { size: isAddingIdea ? 100 : 0 },
-    config: config.stiff
+    to: { size: isAddingIdea ? 113 : 0 },
+    config: config.stiff,
+    onRest: onAnimationComplete
   });
 
   const addNewOpacityRef = useRef();
@@ -92,13 +103,14 @@ function AppRoot() {
     ref: addNewOpacityRef,
     from: { opacity: 0 },
     to: { opacity: isAddingIdea ? 1 : 0 },
-    config: config.stiff
+    config: config.stiff,
+    onRest: onAnimationComplete
   });
 
   const chain = isAddingIdea
     ? [addNewSizeRef, addNewOpacityRef]
     : [addNewOpacityRef, addNewSizeRef];
-  useChain(chain, [0, 0.4]);
+  useChain(chain, [0, 0.3]);
 
   function addIdea() {
     setAddingIdea(true);
@@ -146,6 +158,7 @@ function AppRoot() {
                   }}
                 >
                   <NewIdea
+                    setInnerTextArea={setTextArea}
                     handleIdeaClosed={finishAddingIdea}
                     handleIdeaSubmitted={onIdeaSubmitted}
                   />
