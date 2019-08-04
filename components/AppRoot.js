@@ -21,8 +21,12 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
   }
 
   function handleKeyPress(event) {
-    if (event.which === 13 && value.trim().length > 0) {
+    if (event.key === 'Enter' && value.trim().length > 0) {
       submitIdea(event);
+    }
+
+    if (event.key === 'Escape') {
+      closeIdea(event);
     }
   }
 
@@ -36,6 +40,7 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
   function closeIdea(event) {
     event.preventDefault();
     handleIdeaClosed();
+    setValue('');
   }
 
   console.log();
@@ -44,8 +49,8 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
     <ItemCard>
       <form onSubmit={submitIdea}>
         <Textarea
-          placeholder="My new idea..."
           autoFocus
+          placeholder="My new idea..."
           value={value}
           onChange={onChange}
           onBlur={() => value.length === 0 && handleIdeaClosed()}
@@ -85,16 +90,22 @@ function AppRoot() {
 
   const [textArea, setTextArea] = useState(null);
 
+  const [isAnimatingNewIdea, setIsAnimatingNewIdea] = useState(false);
+  function onAnimationStart() {
+    setIsAnimatingNewIdea(true);
+  }
+
   function onAnimationComplete() {
-    if (textArea && textArea.focus) textArea.focus();
+    setIsAnimatingNewIdea(false);
   }
 
   const addNewSizeRef = useRef();
   const addNewSizeProps = useSpring({
     ref: addNewSizeRef,
-    from: { size: 0 },
-    to: { size: isAddingIdea ? 113 : 0 },
+    from: { size: 0, minSize: '0%' },
+    to: { size: isAddingIdea ? 113 : 0, minSize: isAddingIdea ? '100%' : '0%' },
     config: config.stiff,
+    onStart: onAnimationStart,
     onRest: onAnimationComplete
   });
 
@@ -104,6 +115,7 @@ function AppRoot() {
     from: { opacity: 0 },
     to: { opacity: isAddingIdea ? 1 : 0 },
     config: config.stiff,
+    onStart: onAnimationStart,
     onRest: onAnimationComplete
   });
 
@@ -154,14 +166,17 @@ function AppRoot() {
                 <animated.div
                   style={{
                     ...addNewOpacityProps,
-                    height: addNewSizeProps.size
+                    height: addNewSizeProps.minSize
                   }}
                 >
-                  <NewIdea
-                    setInnerTextArea={setTextArea}
-                    handleIdeaClosed={finishAddingIdea}
-                    handleIdeaSubmitted={onIdeaSubmitted}
-                  />
+                  {isAddingIdea && (
+                    <NewIdea
+                      style={{ height: 'auto' }}
+                      setInnerTextArea={setTextArea}
+                      handleIdeaClosed={finishAddingIdea}
+                      handleIdeaSubmitted={onIdeaSubmitted}
+                    />
+                  )}
                 </animated.div>
                 {ideaTransitions.map(({ item, props, key }) => {
                   return (
