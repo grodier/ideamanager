@@ -10,8 +10,10 @@
     "next": "^9.0.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
+    "react-resize-aware": "^3.0.0-beta.3",
     "react-spring": "^8.0.27",
-    "react-textarea-autosize": "^7.1.0"
+    "react-textarea-autosize": "^7.1.0",
+    "resize-observer-polyfill": "^1.5.1"
   },
   "devDependencies": {
     "autoprefixer": "^9.6.1",
