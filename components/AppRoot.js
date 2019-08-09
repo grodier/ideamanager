@@ -6,14 +6,17 @@ import {
   animated,
   config,
   useSpring,
+  a,
   useChain
 } from 'react-spring';
 import ItemCard from './ItemCard';
 import ListContainer from './ListContainer';
 import TitleContainer from './TitleContainer';
 import Textarea from 'react-textarea-autosize';
+import useResizeAware from 'react-resize-aware';
+import useMeasure from '../hooks/useMeasure';
 
-function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
+function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, isOpen }) {
   const [value, setValue] = useState('');
 
   function onChange(e) {
@@ -43,8 +46,6 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
     setValue('');
   }
 
-  console.log();
-
   return (
     <ItemCard>
       <form onSubmit={submitIdea}>
@@ -56,11 +57,15 @@ function NewIdea({ handleIdeaClosed, handleIdeaSubmitted, setInnerTextArea }) {
           onBlur={() => value.length === 0 && handleIdeaClosed()}
           onKeyDown={handleKeyPress}
           className="w-full resize-none p-1 border border-gray-300"
-          inputRef={ref => setInnerTextArea(ref)}
+          tabIndex={isOpen ? '0' : '-1'}
         />
         <div className="flex flex-col flex items-end">
-          <button onClick={submitIdea}>Add idea</button>
-          <button onClick={closeIdea}>Cancel</button>
+          <button onClick={submitIdea} tabIndex={isOpen ? '0' : '-1'}>
+            Add idea
+          </button>
+          <button onClick={closeIdea} tabIndex={isOpen ? '0' : '-1'}>
+            Cancel
+          </button>
         </div>
       </form>
     </ItemCard>
@@ -80,6 +85,7 @@ function AppRoot() {
   ]);
 
   const [isAddingIdea, setAddingIdea] = useState(false);
+
   const ideaTransitions = useTransition(ideas, idea => idea.id, {
     inital: { transform: 'translate3d(0%, 0%, 0)', opacity: 1 },
     from: { transform: 'translate3d(0%, -20%, 0)', opacity: 0 },
@@ -88,41 +94,16 @@ function AppRoot() {
     trail: 400
   });
 
-  const [textArea, setTextArea] = useState(null);
+  const [bind, { height: viewHeight }] = useMeasure();
 
-  const [isAnimatingNewIdea, setIsAnimatingNewIdea] = useState(false);
-  function onAnimationStart() {
-    setIsAnimatingNewIdea(true);
-  }
-
-  function onAnimationComplete() {
-    setIsAnimatingNewIdea(false);
-  }
-
-  const addNewSizeRef = useRef();
-  const addNewSizeProps = useSpring({
-    ref: addNewSizeRef,
-    from: { size: 0, minSize: '0%' },
-    to: { size: isAddingIdea ? 113 : 0, minSize: isAddingIdea ? '100%' : '0%' },
-    config: config.stiff,
-    onStart: onAnimationStart,
-    onRest: onAnimationComplete
+  const heightSpring = useSpring({
+    from: { height: 0, opacity: 0 },
+    to: {
+      height: isAddingIdea ? viewHeight : 0,
+      opacity: isAddingIdea ? 1 : 0
+    },
+    config: config.stiff
   });
-
-  const addNewOpacityRef = useRef();
-  const addNewOpacityProps = useSpring({
-    ref: addNewOpacityRef,
-    from: { opacity: 0 },
-    to: { opacity: isAddingIdea ? 1 : 0 },
-    config: config.stiff,
-    onStart: onAnimationStart,
-    onRest: onAnimationComplete
-  });
-
-  const chain = isAddingIdea
-    ? [addNewSizeRef, addNewOpacityRef]
-    : [addNewOpacityRef, addNewSizeRef];
-  useChain(chain, [0, 0.3]);
 
   function addIdea() {
     setAddingIdea(true);
@@ -164,19 +145,19 @@ function AppRoot() {
               </TitleContainer>
               <div>
                 <animated.div
+                  className="relative overflow-hidden"
                   style={{
-                    ...addNewOpacityProps,
-                    height: addNewSizeProps.minSize
+                    ...heightSpring,
+                    height: heightSpring.height
                   }}
                 >
-                  {isAddingIdea && (
+                  <a.div {...bind}>
                     <NewIdea
-                      style={{ height: 'auto' }}
-                      setInnerTextArea={setTextArea}
+                      isOpen={isAddingIdea}
                       handleIdeaClosed={finishAddingIdea}
                       handleIdeaSubmitted={onIdeaSubmitted}
                     />
-                  )}
+                  </a.div>
                 </animated.div>
                 {ideaTransitions.map(({ item, props, key }) => {
                   return (
